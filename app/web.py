@@ -3,8 +3,8 @@
 Playing with web pages
 """
 import logging
-import re, requests
-from threading import Thread
+import queue, re, requests
+from threading import Thread, Lock
 
 log = logging.getLogger(__name__)
 
@@ -30,18 +30,36 @@ def readWebPage():
 # Functions for downloading multiple files, including threading
 #
 
-def _downloadFile(url):
+# Tracks when all files have been retrieved
+fileQ = queue.Queue()
+dlSum = 0
+sumLock = Lock()
+
+def _downloadFile(fileQ):
+    global dlSum
+
+    url = fileQ.get()
     r = requests.get(url)
     fname = str.split(url, '/')[-1]
     isText = (str.split(fname, '.')[-1] == 'html')
-    print("Retrieved {}, {} bytes".format(fname,
-                                          len(r.text) if isText else len(r.content)))
+    dlSize = len(r.text) if isText else len(r.content)
+    
+    print("Retrieved {}, {} bytes".format(fname, dlSize))
+    with sumLock:
+        dlSum += dlSize
+    fileQ.task_done()
 
 def downloadFiles():
-    """Downloads a few files, concurrently via threading"""
+    """Downloads a few files, concurrently via threading. Waits for all to
+       finish.
+    """
     prefix = 'http://cytheric.net'
     files = ['resume.pdf', 'index.html']
 
     for f in files:
-        t = Thread(target=_downloadFile, args=(prefix + '/' + f,))
+        fileQ.put(prefix + '/' + f)
+        t = Thread(target=_downloadFile, args=(fileQ,))
         t.start()
+
+    fileQ.join()
+    print("\nAll files retrieved; {} bytes".format(dlSum))
