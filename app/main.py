@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright 2021, Ken Bannister
 """
-Entry point for balena app. Includes exercises for common tool tasks, like read
+Entry point for pyplay app. Includes exercises for common tool tasks, like read
 a file or retrieve a web page.
 
 To see command details:
