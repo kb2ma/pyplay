@@ -1,6 +1,6 @@
 # Copyright 2021, Ken Bannister
 """
-Playing with web pages
+Play with web page retrieval
 """
 import logging
 import queue, re, requests
@@ -32,6 +32,7 @@ def readWebPage():
 
 # Tracks when all files have been retrieved
 fileQ = queue.Queue()
+# Sum of bytes downloaded in files
 dlSum = 0
 sumLock = Lock()
 
@@ -62,4 +63,4 @@ def downloadFiles():
         t.start()
 
     fileQ.join()
-    print("\nAll files retrieved; {} bytes".format(dlSum))
+    print("\nAll files retrieved, {} bytes".format(dlSum))
